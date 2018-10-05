@@ -29,3 +29,14 @@ else
     $iisWAP.managedRuntimeVersion;
     $iisWAP.managedRuntimeLoader;
 }
+# Stop the AppPool if it exists and is running, dont error if it doesn't
+if (Test-Path "$iisAppPoolName") {
+    if ((Get-WebAppPoolState -Name $iisAppPoolName).Value -ne "Stopped") {
+        Stop-WebAppPool -Name $iisAppPoolName
+        echo "Stopped AppPool '$iisAppPoolName'"
+    } else {
+        echo "WARNING: AppPool '$iisAppPoolName' was already stopped. Have you already run this?"
+    }
+} else {
+    echo "WARNING: Could not find an AppPool called '$iisAppPoolName' to stop. Assuming this is a new install"
+}
