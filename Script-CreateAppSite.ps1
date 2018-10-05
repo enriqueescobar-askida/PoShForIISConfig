@@ -43,3 +43,14 @@ else
     $iisAppSite=Get-Item "IIS:\Sites\$iisAppSiteName";
     $iisAppSite.Attributes;
 }
+# Stop the website if it exists and is running, dont error if it doesn't
+if (Test-Path "IIS:\Sites\$iisAppSiteName") {
+    if ((Get-WebsiteState -Name $iisAppSiteName).Value -ne "Stopped") {
+        Stop-WebSite -Name $iisAppSiteName
+        echo "Stopped website '$iisAppSiteName'"
+    } else {
+        echo "WARNING: Site '$iisAppSiteName' was already stopped. Have you already run this?"
+    }
+} else {
+    echo "WARNING: Could not find a site called '$iisAppSiteName' to stop. Assuming this is a new install"
+}
