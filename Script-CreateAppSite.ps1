@@ -1,4 +1,5 @@
-﻿Import-Module WebAdministration;
+Import-Module WebAdministration;
+Sleep 2;
 #look for "Axon-ID_Site"
 $iisAppSiteName="Axon-ID_Site" ;
 #look for Axon-ID AppPool
