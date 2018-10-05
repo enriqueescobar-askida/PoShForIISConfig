@@ -1,4 +1,5 @@
 ﻿Import-Module WebAdministration;
+ Sleep 2;
 #look for Axon-ID AppPool
 $iisAppPoolName="Axon-ID_AppPool";
 $iisAppPoolDotNetVersion="v4.0";
