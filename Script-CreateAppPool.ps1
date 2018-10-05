@@ -4,6 +4,7 @@
 $iisAppPoolName="Axon-ID_AppPool";
 $iisAppPoolDotNetVersion="v4.0";
 $iisAppPoolPipeLineMode="Integrated";
+if($iisAppPoolName -eq $null) { throw "Empty AppPool name, Argument two is missing" }
 #navigate to the app pools root
 cd IIS:\AppPools\ ;
 ls ;
