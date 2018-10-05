@@ -15,17 +15,44 @@ ls ;
 Test-Path $iisAppPoolName -pathType Container ;
 
 try{
+    ## delete the website & app pool if needed
+    #if (Test-Path "IIS:\Sites\$siteName") {
+    #    "Removing existing website $siteName"
+    #    Remove-Website -Name $siteName
+    #}
+    ##remove anything already using that port
+    #foreach($site in Get-ChildItem IIS:\Sites) {
+    #    if( $site.Bindings.Collection.bindingInformation -eq ("*:" + $port + ":")){
+    #        "Warning: Found an existing site '$($site.Name)' already using port $port. Removing it..."
+    #        Remove-Website -Name  $site.Name 
+    #        "Website $($site.Name) removed"
+    #    }
+    #}
 	#check if the app pool exists
 	if (!(Test-Path $iisAppPoolName -pathType Container))
 	{
 		#create the app pool
 		echo "$iisAppPoolName $iisAppPoolDotNetVersion $iisAppPoolPipeLineMode DOES NOT EXIST!" ;
+		echo "Create an appPool named $iisAppPoolName under v4.0 runtime, default (Integrated) pipeline"
 		$iisWAP=New-WebAppPool -Verbose -Name $iisAppPoolName;
 		$iisWAP.managedPipeLineMode = "$iisAppPoolPipeLineMode";
 		Set-ItemProperty "IIS:\AppPools\$iisAppPoolName" managedRuntimeVersion "$iisAppPoolDotNetVersion";
+		#$iisWAP.managedRuntimeVersion = "v4.0"
+		#$iisWAP.processModel.identityType = 2 #NetworkService
+		#if ($user -ne $null -AND $password -ne $null) {
+		#	"Setting AppPool to run as $user"
+		#	$iisWAP.processmodel.identityType = 3
+		#	$iisWAP.processmodel.username = $user
+		#	$iisWAP.processmodel.password = $password
+		#}		
+		#$iisWAP | Set-Item
 		$iisWAP.managedPipelineMode;
 		$iisWAP.managedRuntimeVersion;
 		$iisWAP.managedRuntimeLoader;
+		if ((Get-WebAppPoolState -Name $iisAppPoolName).Value -ne "Started") {
+			throw "App pool $iisAppPoolName was created but did not start automatically. Probably something is broken!"
+		}
+		"Website AppPool created and started successfully"
 	}
 	else
 	{
@@ -36,6 +63,10 @@ try{
 		$iisWAP.managedPipelineMode;
 		$iisWAP.managedRuntimeVersion;
 		$iisWAP.managedRuntimeLoader;
+		#if (Test-Path "IIS:\AppPools\$iisAppPoolName") {
+		#	"Removing existing AppPool $iisAppPoolName"
+		#	Remove-WebAppPool -Name $iisAppPoolName
+		#}
 	}
 	# Stop the AppPool if it exists and is running, dont error if it doesn't
 	if (Test-Path "$iisAppPoolName") {
