@@ -5,6 +5,7 @@ $iisAppSiteName="Axon-ID_Site" ;
 #look for Axon-ID AppPool
 $iisAppPoolName="Axon-ID_AppPool";
 echo "USE $iisAppPoolName & CREATE IIS\$iisAppSiteName";
+if($iisAppPoolName -eq $null)    { throw "Empty site name, Argument one is missing" }
 #navigate to the sites root
 cd IIS:\Sites\ ;
 ls ;
