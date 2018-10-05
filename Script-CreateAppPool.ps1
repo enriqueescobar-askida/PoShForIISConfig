@@ -1,5 +1,5 @@
-﻿Import-Module WebAdministration;
- Sleep 2;
+Import-Module WebAdministration;
+Sleep 2;
 #look for Axon-ID AppPool
 $iisAppPoolName="Axon-ID_AppPool";
 $iisAppPoolDotNetVersion="v4.0";
@@ -13,36 +13,45 @@ $backup = Backup-WebConfiguration $backupName
 cd IIS:\AppPools\ ;
 ls ;
 Test-Path $iisAppPoolName -pathType Container ;
-#check if the app pool exists
-if (!(Test-Path $iisAppPoolName -pathType Container))
-{
-    #create the app pool
-    echo "$iisAppPoolName $iisAppPoolDotNetVersion $iisAppPoolPipeLineMode DOES NOT EXIST!" ;
-    $iisWAP=New-WebAppPool -Verbose -Name $iisAppPoolName;
-    $iisWAP.managedPipeLineMode = "$iisAppPoolPipeLineMode";
-    Set-ItemProperty "IIS:\AppPools\$iisAppPoolName" managedRuntimeVersion "$iisAppPoolDotNetVersion";
-    $iisWAP.managedPipelineMode;
-    $iisWAP.managedRuntimeVersion;
-    $iisWAP.managedRuntimeLoader;
-}
-else
-{
-    echo "$iisAppPoolName $iisAppPoolDotNetVersion $iisAppPoolPipeLineMode EXISTS!" ;
-    $iisWAP=Get-Item "IIS:\AppPools\$iisAppPoolName";
-    $iisWAP.managedPipeLineMode = "$iisAppPoolPipeLineMode";
-    Set-ItemProperty "IIS:\AppPools\$iisAppPoolName" managedRuntimeVersion "$iisAppPoolDotNetVersion";
-    $iisWAP.managedPipelineMode;
-    $iisWAP.managedRuntimeVersion;
-    $iisWAP.managedRuntimeLoader;
-}
-# Stop the AppPool if it exists and is running, dont error if it doesn't
-if (Test-Path "$iisAppPoolName") {
-    if ((Get-WebAppPoolState -Name $iisAppPoolName).Value -ne "Stopped") {
-        Stop-WebAppPool -Name $iisAppPoolName
-        echo "Stopped AppPool '$iisAppPoolName'"
-    } else {
-        echo "WARNING: AppPool '$iisAppPoolName' was already stopped. Have you already run this?"
-    }
-} else {
-    echo "WARNING: Could not find an AppPool called '$iisAppPoolName' to stop. Assuming this is a new install"
+
+try{
+	#check if the app pool exists
+	if (!(Test-Path $iisAppPoolName -pathType Container))
+	{
+		#create the app pool
+		echo "$iisAppPoolName $iisAppPoolDotNetVersion $iisAppPoolPipeLineMode DOES NOT EXIST!" ;
+		$iisWAP=New-WebAppPool -Verbose -Name $iisAppPoolName;
+		$iisWAP.managedPipeLineMode = "$iisAppPoolPipeLineMode";
+		Set-ItemProperty "IIS:\AppPools\$iisAppPoolName" managedRuntimeVersion "$iisAppPoolDotNetVersion";
+		$iisWAP.managedPipelineMode;
+		$iisWAP.managedRuntimeVersion;
+		$iisWAP.managedRuntimeLoader;
+	}
+	else
+	{
+		echo "$iisAppPoolName $iisAppPoolDotNetVersion $iisAppPoolPipeLineMode EXISTS!" ;
+		$iisWAP=Get-Item "IIS:\AppPools\$iisAppPoolName";
+		$iisWAP.managedPipeLineMode = "$iisAppPoolPipeLineMode";
+		Set-ItemProperty "IIS:\AppPools\$iisAppPoolName" managedRuntimeVersion "$iisAppPoolDotNetVersion";
+		$iisWAP.managedPipelineMode;
+		$iisWAP.managedRuntimeVersion;
+		$iisWAP.managedRuntimeLoader;
+	}
+	# Stop the AppPool if it exists and is running, dont error if it doesn't
+	if (Test-Path "$iisAppPoolName") {
+		if ((Get-WebAppPoolState -Name $iisAppPoolName).Value -ne "Stopped") {
+			Stop-WebAppPool -Name $iisAppPoolName
+			echo "Stopped AppPool '$iisAppPoolName'"
+		} else {
+			echo "WARNING: AppPool '$iisAppPoolName' was already stopped. Have you already run this?"
+		}
+	} else {
+		echo "WARNING: Could not find an AppPool called '$iisAppPoolName' to stop. Assuming this is a new install"
+	}
+} catch {
+    "Error detected, running command 'Restore-WebConfiguration $backupName' to restore the web server to its initial state. Please wait..."
+    sleep 3 #allow backup to unlock files
+    Restore-WebConfiguration $backupName
+    "IIS Restore complete. Throwing original error."
+    throw
 }
