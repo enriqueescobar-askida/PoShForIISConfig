@@ -35,3 +35,11 @@ Enable-WindowsOptionalFeature -Online -FeatureName IIS-ISAPIExtensions
 Enable-WindowsOptionalFeature -Online -FeatureName IIS-ISAPIFilter
 Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpCompressionStatic
 Enable-WindowsOptionalFeature -Online -FeatureName IIS-ASPNET45
+
+Enable-PSRemoting -Force
+Set-Item wsman:\localhost\client\trustedhosts *
+Restart-Service WinRM
+Test-WsMan $env:COMPUTERNAME
+# Invoke-Command -ComputerName COMPUTER -ScriptBlock { COMMAND } -credential USERNAME
+# Invoke-Command -ComputerName 10.0.0.22 -ScriptBlock { Get-ChildItem C:\ } -credential wjgle
+# Enter-PSSession -ComputerName COMPUTER -Credential USER
