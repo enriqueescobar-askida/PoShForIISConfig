@@ -44,3 +44,4 @@ Test-WsMan $env:COMPUTERNAME
 # Invoke-Command -ComputerName 10.0.0.22 -ScriptBlock { Get-ChildItem C:\ } -credential wjgle
 # Enter-PSSession -ComputerName COMPUTER -Credential USER
 $defaultIISAppPool=Get-IISAppPool "DefaultAppPool";
+Sleep 5 Remove-WebAppPool "DefaultAppPool";
