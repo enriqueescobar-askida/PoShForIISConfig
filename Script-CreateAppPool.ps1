@@ -5,6 +5,10 @@ $iisAppPoolName="Axon-ID_AppPool";
 $iisAppPoolDotNetVersion="v4.0";
 $iisAppPoolPipeLineMode="Integrated";
 if($iisAppPoolName -eq $null) { throw "Empty AppPool name, Argument two is missing" }
+#backing up
+$backupName = "$(Get-date -format "yyyyMMdd-HHmmss")-$iisAppPoolName"
+"Backing up IIS config to backup named $backupName"
+$backup = Backup-WebConfiguration $backupName
 #navigate to the app pools root
 cd IIS:\AppPools\ ;
 ls ;
