@@ -38,6 +38,12 @@ if (!(Test-Path "$iisAppSiteName" -pathType Container))
     (Get-Item "IIS:\Sites\Default Web Site").bindings;
     $iisAppSite=New-WebSite -Name "$iisAppSiteName" -ApplicationPool "$iisAppPoolName" -Force -Verbose -PhysicalPath "$envPath" ;
     $iisAppSite.bindings = (Get-Item "IIS:\Sites\Default Web Site").bindings;
+    #"Create a website $siteName from directory $envPath on port $port"
+    #$website = New-Website -Name $iisAppSiteName -PhysicalPath $envPath -ApplicationPool $iisAppPoolName -Port $port
+    if ((Get-WebsiteState -Name $iisAppSiteName).Value -ne "Started") {
+        throw "Website $iisAppSiteName was created but did not start automatically. Probably something is broken!"
+    }
+    "Website created and started successfully"
 }
 else
 {
