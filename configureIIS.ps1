@@ -45,3 +45,5 @@ Test-WsMan $env:COMPUTERNAME
 # Enter-PSSession -ComputerName COMPUTER -Credential USER
 $defaultIISAppPool=Get-IISAppPool "DefaultAppPool";
 Sleep 5 Remove-WebAppPool "DefaultAppPool";
+#Recycle the application pool:
+Restart-WebAppPool $pool
