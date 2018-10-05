@@ -1,0 +1,74 @@
+- name: Remove Default Web Site
+  win_iis_website:
+    name: "Default Web Site"
+    state: absent
+
+- name: Create directory
+  win_file:
+    path: "{{ ROOT_PATH }}/{{ WEB_APP_NAME }}/{{ WEB_APP_END_PATH }}"
+    state: directory
+
+- name:
+  win_acl:
+    path: "{{ ROOT_PATH }}"
+    rights: FullControl
+    type: allow
+    state: present
+    user: ansibledev
+    inherit: ContainerInherit
+
+- name: Create local tmp directory
+  local_action: file path=tmp state=directory mode=0777
+
+- name: Creation d'un application pool
+  win_iis_webapppool:
+    name: "{{ WEB_APP_NAME }}"
+    state: started
+    attributes:
+      managedRuntimeVersion: v4.0
+      autoStart: yes
+
+- name: Jasper Back-End IIS site
+  win_iis_website:
+    name: "{{ WEB_APP_NAME }}"
+    state: started
+    ssl: true
+    hostname: "{{ JASPER_CORE_HOSTNAME }}"
+    application_pool: "{{ WEB_APP_NAME }}"
+    physical_path: "{{ ROOT_PATH }}/{{ WEB_APP_NAME }}/webapp/_PublishedWebsites/{{ WEB_APP_END_PATH }}"
+    attributes:
+      serverAutoStart: True
+      # timespan format is "days:hours:minutes:seconds.milliseconds" or "hours:minutes:seconds"
+      limits.connectionTimeout: "00:02:00"
+      logFile.directory: C:\sites\logs
+      logFile.logFormat: IIS
+
+- block:
+  - name: Download platform-core binaries from Artefactory
+    local_action: "get_url url={{ ARTEFACTORY_URL }}/{{ ARTEFACTORY_PATH }}/{{ VERSION_CORE }}.zip dest=tmp mode=0777"
+
+  - name: Scp the files
+    win_copy:
+      src: tmp/{{ VERSION_CORE }}.zip
+      dest: c:/
+
+  - name: unzip .zip
+    win_unzip:
+      src: "c:/{{ VERSION_CORE }}.zip"
+      dest: "{{ ROOT_PATH }}/{{ WEB_APP_NAME }}"
+      rm: true
+      removed: true
+
+  - name: Create local tmp directory
+    local_action: file path=tmp state=absent
+
+  - name: Apply Web.config Template
+    template:
+      src: web.config.j2
+      dest: "{{ ROOT_PATH }}/{{ WEB_APP_NAME }}/webapp/_PublishedWebsites/{{ WEB_APP_END_PATH }}/Web.config"
+
+  - name: set IIS connect as users for Core
+    script: setIISWebsiteConnectAsUser.ps1 -webSiteName "{{ WEB_APP_NAME }}" -username "{{ windows_user }}" -password "{{ windows_passwd }}"
+
+  when: bi_platform_environment_name != 'local' | default('true')
+  
